@@ -1,0 +1,27 @@
+name: build
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          unzip -q umear-visuals-src.zip
+          sed -i 's/injector\.wrapmethod\.Operation/injector.wrapoperation.Operation/' umear-visuals-src/src/main/java/com/umear/mixin/HeldItemRendererMixin.java
+          sed -i 's/SoundEvents\.BLOCK_NOTE_BLOCK_BELL,/SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(),/; s/SoundEvents\.UI_BUTTON_CLICK,/SoundEvents.UI_BUTTON_CLICK.value(),/; s/getTickProgress(false)/getTickDelta(false)/' umear-visuals-src/src/main/java/com/umear/Fx.java
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.12
+      - run: gradle build --no-daemon --console=plain
+        working-directory: umear-visuals-src
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UMEAR-VISUAL-V2
+          path: umear-visuals-src/build/libs/*.jar
+          if-no-files-found: error
